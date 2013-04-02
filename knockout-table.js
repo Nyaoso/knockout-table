@@ -24,6 +24,7 @@ function isArray(a) {
  */
 ko.bindingHandlers.table = {
     update: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
+		var d1 = new Date();
         var rawValue = ko.utils.unwrapObservable(valueAccessor()),
             value = isArray(rawValue) ? { data: rawValue } : rawValue,
 
@@ -31,7 +32,8 @@ ko.bindingHandlers.table = {
             dataItem = ko.utils.unwrapObservable(value.dataItem),
             header = ko.utils.unwrapObservable(value.header),
             evenClass = ko.utils.unwrapObservable(value.evenClass),
-
+			tableClass = ko.utils.unwrapObservable(value.tableClass),
+			
             dataIsArray = isArray(data),
             dataIsObject = typeof data === 'object',
             dataItemIsFunction = typeof dataItem === 'function',
@@ -85,7 +87,10 @@ ko.bindingHandlers.table = {
         if (evenClass)
             evenClass = ko.utils.escape(evenClass);
 
-        var html = '<table>';
+		if (tableClass)
+			tableClass = ko.utils.escap(tableClass);
+			
+        var html = '<table class="' + tableClass + '">';
 
         // Generate a header section if a header function is provided
         if (header) {
@@ -128,6 +133,9 @@ ko.bindingHandlers.table = {
                 });
             });
         }
+		
+		var d2 = new Date();
+		console.log("updated run in " + (d2.getTime() - d1.getTime()) + " ms");
     }
 };
 

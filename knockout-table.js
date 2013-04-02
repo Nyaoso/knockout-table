@@ -24,7 +24,7 @@ function isArray(a) {
  */
 ko.bindingHandlers.table = {
     update: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
-		var d1 = new Date();
+
         var rawValue = ko.utils.unwrapObservable(valueAccessor()),
             value = isArray(rawValue) ? { data: rawValue } : rawValue,
 
@@ -133,9 +133,6 @@ ko.bindingHandlers.table = {
                 });
             });
         }
-		
-		var d2 = new Date();
-		console.log("updated run in " + (d2.getTime() - d1.getTime()) + " ms");
     }
 };
 

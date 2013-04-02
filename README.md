@@ -102,6 +102,7 @@ The `table` binding expects a single parameter of a two-dimensional array to out
 * `header` - either an array of header values, a function that returns the header for each column value, or a string used to read the header from the column object. (optional)
 * `dataItem` - either a function that returns the data value for a given row and column, or a string used to read the data-item key from the column object (which is then used to read from the row object). (optional)
 * `evenClass` - the name of a class that will be applied to even rows in the table, starting with the second row. (optional)
+* `tableClass` - the name of a class that will be applied to table. (optional)
 
 Any of the above parameters can be an observable and will cause the table to be regenerated if updated. For the purpose of making the binding faster, the entries in `data`, `rows`, `columns`, or `headers` cannot be observables. The actual data items, though, can be observable, and if updated, will update only the corresponding table cell’s contents.
 

@@ -88,9 +88,9 @@ ko.bindingHandlers.table = {
             evenClass = ko.utils.escape(evenClass);
 
 		if (tableClass)
-			tableClass = ko.utils.escap(tableClass);
-			
-        var html = '<table class="' + tableClass + '">';
+			tableClass = ko.utils.escape(tableClass);
+
+        var html = '<table>';
 
         // Generate a header section if a header function is provided
         if (header) {
@@ -123,7 +123,16 @@ ko.bindingHandlers.table = {
         var tempTable = tempDiv.firstChild;
         while (tempTable.firstChild)
             element.appendChild(tempTable.firstChild);
-
+		
+		element.className = tableClass;
+		
+		if (header) {
+			var headerElements = element.childNodes[0].childNodes[0].childNodes;
+			for(var i = 0; i < headerElements.length; i++) {
+				headerElements[i].onclick = function() { alert(); };
+			}
+		}
+		
         // Make sure subscriptions are disposed if the table is cleared
         if (itemSubs) {
             tableBody = element.tBodies[0];

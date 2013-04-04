@@ -1,0 +1,86 @@
+<html>
+
+<head>
+    <script type="text/javascript" src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+    <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/knockout/knockout-2.2.1.js"></script>
+    <script type="text/javascript" src="js/bootstrap.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css"/>
+    <script type="text/javascript" src="knockout-table.js"></script>
+
+    <style type="text/css">
+        .unselectable {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            cursor: pointer;
+        }
+
+        .selected {
+            background-color: #4bb1cf;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<script type="text/javascript">
+
+    function TableModel() {
+
+        var self = this;
+        var limit = 100;
+
+        self.addRow = function () {
+            for (var i = 0; i < limit; i++) {
+                self.data.push([Math.random(), Math.random(), Math.random()]);
+            }
+        };
+
+        self.speedAddRow = function () {
+            var ar = [];
+            for (var i = 0; i < limit; i++) {
+                ar.push([Math.random(), Math.random(), Math.random()]);
+            }
+            ko.utils.arrayPushAll(self.data, ar);
+        };
+
+        self.data = ko.observableArray([
+            [1, 4, "c"],
+            [2, 3, "d"],
+            [3, 2, "a"],
+            [4, 1, "b"]
+        ]);
+
+        self.header = ko.observableArray(["a", "b", "c"]);
+    }
+    ;
+
+    $(document).ready(function () {
+
+        var vm = new TableModel();
+        ko.applyBindings(vm);
+    });
+</script>
+
+<button data-bind="click: addRow">Add row</button>
+<button data-bind="click: speedAddRow">Add row fast</button>
+<br/>
+<table data-bind="table:
+    {
+        data: data,
+        header: header,
+        headerClass: 'unselectable',
+        selectedClass: 'selected',
+        upClass: 'icon icon-circle-arrow-up',
+        downClass: 'icon icon-circle-arrow-down'
+    }"
+       class="table table-hover table-condensed">
+</table>
+
+</body>
+
+</html>

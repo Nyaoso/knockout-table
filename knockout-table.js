@@ -27,25 +27,85 @@
         return typeof s == "string";
     }
 
-    ko.bindingHandlers.tableHeader = {
-        init: function (element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
-            var rawValue = ko.utils.unwrapObservable(valueAccessor());
-            var value = isArray(rawValue) ? { data: rawValue } : rawValue;
-            // <tr> row with columns header
-            var headerElement = element.children[0];
-            // if binding is applied to thead
-            if (headerElement.tagName == 'THEAD') {
-                headerElement = headerElement.children[0];
+    function parseDate(d) {
+        return new Date(d);
+    }
+
+    /*
+     * HTML element helpers
+     */
+
+    // verifica se un elemento contiene come classe 'className'
+    HTMLElement.prototype.hasClass = function (className) {
+        if (this.className) {
+            return this.className.indexOf(className) > -1;
+        }
+        return false;
+    };
+
+    // aggiunge una classe ad un elemento
+    HTMLElement.prototype.addClass = function (className) {
+        if (!this.hasClass(className)) this.className = this.className + " " + className;
+    };
+
+    // rimuove una classe da un elemento
+    HTMLElement.prototype.removeClass = function (className) {
+        var classes = className.split(' ');
+        for (var i = 0; i < classes.length; i++) {
+            if (this.hasClass(classes[i])) {
+                var reg = new RegExp('(\\s|^)' + classes[i] + '(\\s|$)');
+                this.className = this.className.replace(reg, ' ');
             }
-            var headerElements = headerElement.children;
-            for (var i = 0; i < headerElements.length; i++) {
-                headerElements[i].onclick = (function (index, valueAccessor) {
+        }
+    };
+
+    // toggle class
+    HTMLElement.prototype.toggleClass = function (className) {
+        if (this.hasClass(className)) {
+            this.removeClass(className);
+        } else {
+            this.addClass(className);
+        }
+    };
+
+    /*
+     * Table binding
+     */
+    ko.bindingHandlers.table = {
+        init: function (element, valueAccessor) {
+            var rawValue = ko.utils.unwrapObservable(valueAccessor());
+            var value = isArray(rawValue) ? { data: rawValue} : rawValue;
+            var header = ko.utils.unwrapObservable(value.header);
+            var headerClass = ko.utils.unwrapObservable(value.headerClass);
+            if (!header) return;
+
+            var enableSorting = ko.utils.unwrapObservable(value.enableSorting);
+
+            var thead = document.createElement('THEAD');
+            thead.innerHTML = '<tr class="' + headerClass + '"></tr>';
+            var trHead = thead.firstChild;
+
+            for (var i = 0; i < header.length; i++) {
+                var th = document.createElement('TH');
+                th.innerText = header[i];
+                th.appendChild(document.createElement('SPAN'));
+                th.onclick = (function (index, valueAccessor) {
                     var index = index;
                     var desc = true;
                     var valueAccessor = valueAccessor;
-                    return function order() {
-                        console.log("ordering " + index + " with desc: " + desc);
-                        valueAccessor().sort(function (left, right) {
+                    return function order(event) {
+                        var selectedClass = ko.utils.unwrapObservable(valueAccessor().selectedClass);
+                        var unselectedClass = ko.utils.unwrapObservable(valueAccessor().unselectedClass);
+                        var upClass = ko.utils.unwrapObservable(valueAccessor().upClass);
+                        var downClass = ko.utils.unwrapObservable(valueAccessor().downClass);
+                        var ths = event.srcElement.parentElement.children;
+                        for (var i = 0; i < ths.length; i++) {
+                            ths[i].removeClass(selectedClass);
+                            ths[i].lastChild.removeClass(upClass + ' ' + downClass);
+                        }
+                        event.srcElement.addClass(selectedClass);
+                        event.srcElement.lastChild.addClass(desc ? upClass : downClass);
+                        valueAccessor().data.sort(function (left, right) {
                                 var leftValue = left[index];
                                 var rightValue = right[index];
                                 if (isNumber(leftValue) && isNumber(rightValue)) {
@@ -59,16 +119,13 @@
                         );
                         desc = !desc;
                     }
-                })
-                    (i, valueAccessor);
+                })(i, valueAccessor);
+                trHead.appendChild(th);
             }
-        }
-    };
 
-    /*
-     * Table binding
-     */
-    ko.bindingHandlers.table = {
+            element.appendChild(thead);
+
+        },
         update: function (element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
 
             var rawValue = ko.utils.unwrapObservable(valueAccessor()),
@@ -158,16 +215,21 @@
                 html += '</tr>';
             }
 
+            var tbody = element.lastChild;
+            if (tbody.tagName.toLowerCase() == 'thead') {
+                element.appendChild(document.createElement('TBODY'));
+                tbody = element.lastChild;
+            }
             // Remove previous table contents (use removeNode so any subscriptions will be disposed)
-            while (element.children[0])
-                ko.removeNode(element.children[0]);
+            while (tbody.children[0])
+                ko.removeNode(tbody.children[0]);
 
             // Insert new table contents
             var tempDiv = document.createElement('table');
             tempDiv.innerHTML = html;
             var tempTable = tempDiv.firstChild;
             while (tempTable.firstChild)
-                element.appendChild(tempTable.firstChild);
+                tbody.appendChild(tempTable.firstChild);
 
 
             // Make sure subscriptions are disposed if the table is cleared

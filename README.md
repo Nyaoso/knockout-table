@@ -1,4 +1,6 @@
-﻿### **TABLE** binding for [Knockout](http://knockoutjs.com/)
+﻿# TODO
+
+### **TABLE** binding for [Knockout](http://knockoutjs.com/)
 
 The `table` binding provides a fast method for displaying tables of data using Knockout. `table` is about ten times faster than nested `foreach` bindings.
 

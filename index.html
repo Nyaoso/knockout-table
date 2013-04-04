@@ -1,5 +1,5 @@
+<!DOCTYPE html>
 <html>
-
 <head>
     <script type="text/javascript" src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
     <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/knockout/knockout-2.2.1.js"></script>
@@ -22,6 +22,15 @@
             background-color: #4bb1cf;
         }
 
+
+        th > span{
+            display: block;
+        }
+
+        th {
+            text-align: center;
+        }
+
     </style>
 </head>
 
@@ -35,7 +44,7 @@
         var limit = 100;
 
         self.addRow = function () {
-            for (var i = 0; i < limit; i++) {
+            for (var i = 0; i < 1; i++) {
                 self.data.push([Math.random(), Math.random(), Math.random()]);
             }
         };
@@ -49,13 +58,41 @@
         };
 
         self.data = ko.observableArray([
-            [1, 4, "c"],
-            [2, 3, "d"],
-            [3, 2, "a"],
-            [4, 1, "b"]
+                ['scuola','fratello','sorella'],
+            ['milan','juventus','inter'],
+            ['cugino','cugina','nonno'],
+            ['zio','zia','scout'],
+            ['adsl','cellulare','telefono'],
+            ['penna','pennarello','matita'],
+            ['colore','arancione','giallo'],
+            ['usb','foglio','libro'],
+            ['computer','sentiero','chiavetta'],
+            ['tastiera','roma','lazio'],
+            ['catania','fiorentina','cagliari'],
+            ['inglese','francese','maglia'],
+            ['random','fse','edoardo puzza'],
+            ['quaderno','barcellona','tablet'],
+            ['sbadaraggafa','ciao','come'],
+            ['cesena','roma','napoli'],
+            ['terrazzo','casa','lavatrice'],
+            ['sto','lontano','dallo'],
+            ['stress','fumo','un'],
+            ['pò','e','dopo'],
+            ['gioco','a','pes'],
+            ['pato','mexes','messi'],
+            ['valdes','fumo','un'],
+            ['pò','e','dopo'],
+            ['gioco','a','pes']
+
+
         ]);
 
         self.header = ko.observableArray(["a", "b", "c"]);
+
+        self.searchText = ko.observable('');
+
+        self.sortFunc = function(left, right, index, desc) {
+        };
     }
     ;
 
@@ -68,15 +105,18 @@
 
 <button data-bind="click: addRow">Add row</button>
 <button data-bind="click: speedAddRow">Add row fast</button>
+<input type="text" data-bind="value: searchText, valueUpdate: 'afterkeydown'"/>
 <br/>
 <table data-bind="table:
     {
         data: data,
         header: header,
         headerClass: 'unselectable',
-        selectedClass: 'selected',
         upClass: 'icon icon-circle-arrow-up',
-        downClass: 'icon icon-circle-arrow-down'
+        downClass: 'icon icon-circle-arrow-down',
+        hideClass: 'hide',
+        searchText: searchText,
+        sortFunc: sortFunc
     }"
        class="table table-hover table-condensed">
 </table>

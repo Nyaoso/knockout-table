@@ -35,91 +35,143 @@
      * HTML element helpers
      */
 
+
     // verifica se un elemento contiene come classe 'className'
-    HTMLElement.prototype.hasClass = function (className) {
-        if (this.className) {
-            return this.className.indexOf(className) > -1;
-        }
-        return false;
-    };
+    function hasClass(element, className) {
+        return className ? element.className.indexOf(className) > -1 : false;
+    }
 
     // aggiunge una classe ad un elemento
-    HTMLElement.prototype.addClass = function (className) {
-        if (!this.hasClass(className)) this.className = this.className + " " + className;
-    };
-
-    // rimuove una classe da un elemento
-    HTMLElement.prototype.removeClass = function (className) {
-        var classes = className.split(' ');
-        for (var i = 0; i < classes.length; i++) {
-            if (this.hasClass(classes[i])) {
-                var reg = new RegExp('(\\s|^)' + classes[i] + '(\\s|$)');
-                this.className = this.className.replace(reg, ' ');
+    function addClass(element, className) {
+        if (className) {
+            if (!hasClass(element, className)) {
+                element.className = element.className.trim() + ' ' + className;
             }
         }
-    };
+    }
 
-    // toggle class
-    HTMLElement.prototype.toggleClass = function (className) {
-        if (this.hasClass(className)) {
-            this.removeClass(className);
-        } else {
-            this.addClass(className);
+    // rimuove una classe da un elemento
+    function removeClass(element, className) {
+        if (className) {
+            var classes = className.split(' ');
+            for (var i = 0; i < classes.length; i++) {
+                if (hasClass(element, classes[i])) {
+                    var reg = new RegExp('(\\s|^)' + classes[i] + '(\\s|$)');
+                    element.className = element.className.replace(reg, ' ');
+                }
+            }
         }
-    };
+    }
 
     /*
      * Table binding
      */
+    ko.bindingHandlers.search = {
+        init: function (element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
+
+        }
+    };
+
     ko.bindingHandlers.table = {
-        init: function (element, valueAccessor) {
+        init: function (element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
             var rawValue = ko.utils.unwrapObservable(valueAccessor());
             var value = isArray(rawValue) ? { data: rawValue} : rawValue;
             var header = ko.utils.unwrapObservable(value.header);
             var headerClass = ko.utils.unwrapObservable(value.headerClass);
+            var hideClass = ko.utils.unwrapObservable(value.hideClass);
+            var searchText = value.searchText;
+            var sortFunc = ko.utils.unwrapObservable(value.sortFunc);
+            var data = value.data;
+
+            if (searchText) {
+                if (!ko.isObservable(searchText)) throw "searchText must be observable";
+
+                searchText.subscribe(function (newValue) {
+                    var rows = element.lastChild.children;
+                    var data = ko.utils.unwrapObservable(this.data);
+
+                    for (var i = 0; i < rows.length; i++) {
+                        var t = data[i].join(' ');
+                        if (t.indexOf(newValue) > -1) {
+                            removeClass(rows[i], this.hideClass);
+                        } else {
+                            addClass(rows[i], this.hideClass);
+                        }
+                    }
+
+                }, {
+                    element: element,
+                    data: data,
+                    hideClass: hideClass
+                });
+            }
+
+
             if (!header) return;
 
-            var enableSorting = ko.utils.unwrapObservable(value.enableSorting);
+            var enableSorting = (ko.utils.unwrapObservable(value.enableSorting) == undefined) ? true : ko.utils.unwrapObservable(value.enableSorting);
 
             var thead = document.createElement('THEAD');
-            thead.innerHTML = '<tr class="' + headerClass + '"></tr>';
-            var trHead = thead.firstChild;
+            var tr = document.createElement('TR');
+            tr.className = headerClass;
+            thead.appendChild(tr);
+            var trHead = tr;
 
             for (var i = 0; i < header.length; i++) {
                 var th = document.createElement('TH');
-                th.innerText = header[i];
+                var span = document.createElement('SPAN');
+                span.innerText = header[i];
+
                 th.appendChild(document.createElement('SPAN'));
-                th.onclick = (function (index, valueAccessor) {
-                    var index = index;
-                    var desc = true;
-                    var valueAccessor = valueAccessor;
-                    return function order(event) {
-                        var selectedClass = ko.utils.unwrapObservable(valueAccessor().selectedClass);
-                        var unselectedClass = ko.utils.unwrapObservable(valueAccessor().unselectedClass);
-                        var upClass = ko.utils.unwrapObservable(valueAccessor().upClass);
-                        var downClass = ko.utils.unwrapObservable(valueAccessor().downClass);
-                        var ths = event.srcElement.parentElement.children;
-                        for (var i = 0; i < ths.length; i++) {
-                            ths[i].removeClass(selectedClass);
-                            ths[i].lastChild.removeClass(upClass + ' ' + downClass);
-                        }
-                        event.srcElement.addClass(selectedClass);
-                        event.srcElement.lastChild.addClass(desc ? upClass : downClass);
-                        valueAccessor().data.sort(function (left, right) {
-                                var leftValue = left[index];
-                                var rightValue = right[index];
-                                if (isNumber(leftValue) && isNumber(rightValue)) {
-                                    return desc ? leftValue > rightValue : leftValue < rightValue;
+                th.appendChild(span);
+
+                if (enableSorting) {
+                    th.onclick = (function (index, valueAccessor) {
+                        var index = index;
+                        var desc = true;
+                        var valueAccessor = valueAccessor;
+                        return function order(event) {
+                            var rawValue = ko.utils.unwrapObservable(valueAccessor());
+                            var selectedClass = rawValue.selectedClass;
+                            var unselectedClass = rawValue.unselectedClass;
+                            var upClass = rawValue.upClass;
+                            var downClass = rawValue.downClass;
+                            var sortFunc = rawValue.sortFunc;
+                            var ths = event.currentTarget.parentElement.children;
+                            for (var i = 0; i < ths.length; i++) {
+                                removeClass(ths[i], selectedClass);
+                                removeClass(ths[i].firstChild, upClass + ' ' + downClass);
+                            }
+                            addClass(event.currentTarget, selectedClass);
+                            addClass(event.currentTarget.firstChild, desc ? upClass : downClass);
+
+                            rawValue.data.sort(function (left, right) {
+                                if (sortFunc) {
+                                    return sortFunc(left, right, index, desc);
                                 } else {
-                                    if (isString(leftValue) && isString(rightValue)) {
-                                        return desc ? leftValue.localeCompare(rightValue) : rightValue.localeCompare(leftValue);
+                                    var leftValue = left[index];
+                                    var rightValue = right[index];
+                                    if (isNumber(leftValue) && isNumber(rightValue)) {
+                                        return desc ? (leftValue >= rightValue ? -1 : 1) : (leftValue <= rightValue ? -1 : 1);
+                                    } else {
+                                        if (isString(leftValue) && isString(rightValue)) {
+                                            return desc ? leftValue.localeCompare(rightValue) : rightValue.localeCompare(leftValue);
+                                        } else {
+                                            if (isNumber(leftValue) && isString(rightValue)) {
+                                                return desc ? (leftValue + '').localeCompare(rightValue) : rightValue.localeCompare(leftValue + '');
+                                            } else {
+                                                if (isString(leftValue) && isNumber(rightValue)) {
+                                                    return desc ? (rightValue + '').localeCompare(leftValue) : leftValue.localeCompare(rightValue + '');
+                                                }
+                                            }
+                                        }
                                     }
                                 }
-                            }
-                        );
-                        desc = !desc;
-                    }
-                })(i, valueAccessor);
+                            });
+                            desc = !desc;
+                        }
+                    })(i, valueAccessor);
+                }
                 trHead.appendChild(th);
             }
 
@@ -193,22 +245,17 @@
             if (tableClass)
                 tableClass = ko.utils.escape(tableClass);
 
-//            var html = '<table>';
-
-//            // Generate a header section if a header function is provided
-//            if (header) {
-//                html += '<thead><tr>';
-//                for (colIndex = 0; colIndex < numCols; colIndex++) {
-//                    var headerValue = headerIsArray ? header[colIndex] : (headerIsFunction ? header(cols[colIndex]) : cols[colIndex][header]);
-//                    html += '<th>' + ko.utils.escape(headerValue) + '</th>';
-//                }
-//                html += '</tr></thead>';
-//            }
+            var tbody = element.lastChild;
+            if (tbody.tagName.toLowerCase() == 'thead') {
+                element.appendChild(document.createElement('TBODY'));
+                tbody = element.lastChild;
+            }
 
             // Generate the table body section
             var html = '';
             for (rowIndex = 0; rowIndex < numRows; rowIndex++) {
                 html += (evenClass && rowIndex % 2) ? '<tr class="' + evenClass + '">' : '<tr>';
+                var tr = document.createElement('TR');
                 for (colIndex = 0; colIndex < numCols; colIndex++) {
                     html += '<td>' + unwrapItemAndSubscribe(rowIndex, colIndex) + '</td>';
                 }
@@ -231,16 +278,15 @@
             while (tempTable.firstChild)
                 tbody.appendChild(tempTable.firstChild);
 
-
             // Make sure subscriptions are disposed if the table is cleared
-//            if (itemSubs) {
-//                tableBody = element.tBodies[0];
-//                ko.utils.domNodeDisposal.addDisposeCallback(tableBody, function () {
-//                    ko.utils.arrayForEach(itemSubs, function (itemSub) {
-//                        itemSub.dispose();
-//                    });
-//                });
-//            }
+            if (itemSubs) {
+                tableBody = element.tBodies[0];
+                ko.utils.domNodeDisposal.addDisposeCallback(tableBody, function () {
+                    ko.utils.arrayForEach(itemSubs, function (itemSub) {
+                        itemSub.dispose();
+                    });
+                });
+            }
         }
     };
 

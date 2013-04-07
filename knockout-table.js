@@ -76,11 +76,15 @@
         init: function (element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
             var rawValue = ko.utils.unwrapObservable(valueAccessor());
             var value = isArray(rawValue) ? { data: rawValue} : rawValue;
+            /* header data */
             var header = ko.utils.unwrapObservable(value.header);
+            /* row class header */
             var headerClass = ko.utils.unwrapObservable(value.headerClass);
+            /* class applied when a row is hidden */
             var hideClass = ko.utils.unwrapObservable(value.hideClass);
+            /* observable related to the search text */
             var searchText = value.searchText;
-            var sortFunc = ko.utils.unwrapObservable(value.sortFunc);
+            /* table data */
             var data = value.data;
 
             if (searchText) {
@@ -132,11 +136,17 @@
                         var valueAccessor = valueAccessor;
                         return function order(event) {
                             var rawValue = ko.utils.unwrapObservable(valueAccessor());
+                            /* class of an th element selected */
                             var selectedClass = rawValue.selectedClass;
+                            /* class of an th element unselected */
                             var unselectedClass = rawValue.unselectedClass;
+                            /* class of an icon up */
                             var upClass = rawValue.upClass;
+                            /* class of an icon down */
                             var downClass = rawValue.downClass;
+                            /* sort function, returns -1 if left <right, 0 if left == right, 1 if left> right */
                             var sortFunc = rawValue.sortFunc;
+
                             var ths = event.currentTarget.parentElement.children;
                             for (var i = 0; i < ths.length; i++) {
                                 removeClass(ths[i], selectedClass);
@@ -185,8 +195,11 @@
 
                 data = ko.utils.unwrapObservable(value.data),
                 dataItem = ko.utils.unwrapObservable(value.dataItem),
+                /* header data */
                 header = ko.utils.unwrapObservable(value.header),
+                /* class applied to each row */
                 evenClass = ko.utils.unwrapObservable(value.evenClass),
+                /* class applied to the table */
                 tableClass = ko.utils.unwrapObservable(value.tableClass),
 
                 dataIsArray = isArray(data),

@@ -2,6 +2,8 @@
 // (c) Michael Best
 // License: MIT (http://www.opensource.org/licenses/mit-license.php)
 // Version 0.2.2
+//
+// updated by edotassi - linuxtassi@gmail.com https://github.com/edotassi/knockout-table
 
 (function (ko, undefined) {
 

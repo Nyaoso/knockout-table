@@ -3,6 +3,11 @@
 ### **TABLE** binding for [Knockout](http://knockoutjs.com/)
 
 The `table` binding provides a fast method for displaying tables of data using Knockout. `table` is about ten times faster than nested `foreach` bindings.
+Columns of the table can be ordered with a custom function or a default function.
+
+Passing as an option `searchText` observable is possible to filter the table in live mode.
+
+More examples and more features are coming soon. If you have ideas and / or advice do not hesitate to contact me.
 
 #### Examples
 
@@ -102,6 +107,9 @@ The `table` binding expects a single parameter of a two-dimensional array to out
 * `columns` - either the number of columns in the table or an array, with each item representing a column. In the former case, the rows in `data` should be arrays; in the latter case, they should be objects, with the values in `columns` being the keys in the object. If no `columns` option is provided, it will default to either the length of the `header` array (if it’s given and an array) or the longest row in `data`. `columns` can also be an array of objects, in which case the `dataItem` option must also be specified.
 * `rows` - either the number of the rows in the table or an array, with each item representing a row. In the former case, `data` should be an array of rows; in the latter case, it should be an object, with the values in `rows` being the keys for each row. If no `rows` option is given, it will default to the length of the `data` array.
 * `header` - either an array of header values, a function that returns the header for each column value, or a string used to read the header from the column object. (optional)
+* `headerClass` - class applied to <tr> header
+* `hideClass` - class applied when a row is hidden
+* `searchText` - observable related to the search text, the table is filtered as a function of searchText`
 * `dataItem` - either a function that returns the data value for a given row and column, or a string used to read the data-item key from the column object (which is then used to read from the row object). (optional)
 * `evenClass` - the name of a class that will be applied to even rows in the table, starting with the second row. (optional)
 * `tableClass` - the name of a class that will be applied to table. (optional)
